@@ -1,13 +1,13 @@
 version: '3.3'
 services:
-    # load-balancer:
-    #     container_name: load-balancer
-    #     image: load-balancer-image
-    #     build: ./deployments/nginx
-    #     ports:
-    #         - 80:80
-    #     depends_on:
-    #         - my-app
+    load-balancer:
+        container_name: load-balancer
+        image: load-balancer-image
+        build: ./deployments/nginx
+        ports:
+            - 80:80
+        depends_on:
+            - my-app
 
 
     my-app:
@@ -22,7 +22,7 @@ services:
             - my-db
             - redis-app
         ports:
-            - 80:8000
+            - 8000:8000
         image: my-app-image
 
 
