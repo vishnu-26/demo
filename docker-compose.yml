@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.3'
 services:
     # load-balancer:
     #     container_name: load-balancer
@@ -10,7 +10,7 @@ services:
     #         - my-app
 
 
-    my-app: 
+    my-app:
         container_name: my-app
         restart: on-failure
         build:
