@@ -1,0 +1,96 @@
+version: '3.8'
+services:
+    # load-balancer:
+    #     container_name: load-balancer
+    #     image: load-balancer-image
+    #     build: ./deployments/nginx
+    #     ports:
+    #         - 80:80
+    #     depends_on:
+    #         - my-app
+
+
+    my-app: 
+        container_name: my-app
+        restart: on-failure
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+            - .:/code
+        depends_on:
+            - my-db
+            - redis-app
+        ports:
+            - 80:8000
+        image: my-app-image
+
+
+#    my_app_1:
+#        container_name: my_app
+#        restart: on-failure
+#        build:
+#            context: .
+#            dockerfile: Dockerfile
+#        volumes:
+#            - .:/code
+#        depends_on:
+#            - my_db
+#            - caching
+#        ports:
+#            - 9000:8000
+
+
+    redis-app:
+        image: redis
+        container_name: redis-app
+        ports:
+            - 5000:6379
+
+
+    my-db:
+        container_name: my-db
+        image: mongo
+        restart: always
+        ports:
+            - 27019:27017
+        volumes:
+            - .db_data:/data/db/
+        # environment:
+        #     MONGO_INITDB_ROOT_USERNAME: vishnu
+        #     MONGO_INITDB_ROOT_PASSWORD: Vishnu26
+
+#     rabbitmq:
+#         image: rabbitmq:latest
+#         container_name: rabbitmq
+#         ports:
+#             - "5672:5672"
+# #        environment:
+# #            - RABBITMQ_DEFAULT_USER= ${RABBITMQ_USER}
+# #            - RABBITMQ_DEFAULT_PASS= ${RABBITMQ_PASS}
+#         restart: on-failure
+#
+#     celery_worker:
+#         container_name: celery_worker
+#         image: my-app-image
+#         depends_on:
+#             - my-app
+#             - my-db
+#             - rabbitmq
+# #        environment:
+# #            - BROKER_URL= amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672//
+#         command: ['celery', '-A', 'django_redis', 'worker', '-l', 'info']
+#         restart: on-failure
+#
+#
+#     celery_beat:
+#         container_name: celery_beat
+#         image: my-app-image
+#         depends_on:
+#             - my-app
+#             - my-db
+#             - rabbitmq
+# #        environment:
+# #            - BROKER_URL= amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672//
+#         command: ['celery', '-A', 'django_redis', 'beat', '-l', 'info']
+#         restart: on-failure
