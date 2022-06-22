@@ -24,28 +24,17 @@ logger = logging.getLogger(__name__)
 @throttle_classes([CustomRateThrottling])
 def shorten_the_long_url(request):
     link = request.data['url']
-    logger.debug(f'Link: {link}')
+
+    hash_value= generate_hash()
+    created_at = datetime.datetime.utcnow()
 
     user = is_authenticated(request)
+
     if user:
-        logger.info(f'User is Authenticated')
-
-        custom_hash = request.data.get('custom_hash')
-        logger.debug(f'Custom Hash: {custom_hash}')
-
-        hash_value = custom_hash if custom_hash else generate_hash()
         user_id = user.get('user_id')
-        created_at = datetime.datetime.utcnow()
-#        expires_at = created_at + datetime.timedelta(days=1)
-
         u = Url(link, hash_value, **{'user_id':user_id, 'created_at':created_at})
 
     else:
-        logger.info(f'User is Unathenticated')
-
-        hash_value= generate_hash()
-        created_at = datetime.datetime.utcnow()
-#        expires_at = created_at + datetime.timedelta(days=1)
         u = Url(link, hash_value, **{'created_at':created_at})
 
 
@@ -63,33 +52,25 @@ def shorten_the_long_url(request):
 
 @api_view(['GET'])
 def redirect_to_long_url(request,hash_value=None):
-#    short_url = os.getenv('DOMAIN_NAME') + hash_value
 
+    u = Url(None,hash_value)
     re = redis_connect()
 
-    ##First Check the cache
     if re.exists(hash_value):
-        logger.info(f'hash {hash_value} Exsists in redis')
         link = re.get(hash_value)
-
-        u = Url(None,hash_value)
 
         '''Increment no of redirections concurrently'''
         threading.Thread(target= u.inc_link_redirections())
 
         return redirect(link)
-
     else:
-        logger.info(f'hash {hash_value} does not Exsists in redis')
-        u = Url(None,hash_value)
         url = u.get_link()
         if url is None:
             return JsonResponse({'msg': 'Error! Bad Request'},status= 400)
 
-        '''Insert into redis with expire time'''
-        re.setex(
+        '''Insert into redis'''
+        re.set(
             url.get('hash'),
-            datetime.timedelta(minutes=2),
             url.get('link')
         )
 
